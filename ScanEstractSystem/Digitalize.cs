@@ -88,21 +88,21 @@ namespace ScanEstractSystem
                                         {
                                             using (var page = engine.Process(img, "Serachablepdf"))
                                             {
-                                                //SaveFileDialog saveFileDialog = new SaveFileDialog();
-                                                //saveFileDialog.Filter = "Arquivos PDF (*.pdf)|*.pdf";
-                                                //saveFileDialog.Title = "Salvar PDF";
+                                                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                                                saveFileDialog.Filter = "Arquivos PDF (*.pdf)|*.pdf";
+                                                saveFileDialog.Title = "Salvar PDF";
 
-                                                //if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                                                //{
-                                                //    string text = page.GetText();
-                                                //}
+                                                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                                                {
+                                                    string txt = page.GetText();
+                                                }
 
-                                                //iTextSharp.text.Document doc = new iTextSharp.text.Document();
-                                                //string pdfFilePath = saveFileDialog.FileName;
+                                                iTextSharp.text.Document doc = new iTextSharp.text.Document();
+                                                string pdfFilePath = saveFileDialog.FileName;
 
-                                                //PdfWriter writer = PdfWriter.GetInstance(doc, new FileStream(pdfFilePath, FileMode.Create));
+                                                PdfWriter writer = PdfWriter.GetInstance(doc, new FileStream(pdfFilePath, FileMode.Create));
 
-                                                //MessageBox.Show("Arquivo PDF salvo com sucesso!");
+                                                MessageBox.Show("Arquivo PDF salvo com sucesso!");
 
                                                 string text = page.GetText();
 
@@ -123,7 +123,7 @@ namespace ScanEstractSystem
                 Console.WriteLine();
                 Console.WriteLine("Porfavor, tenha certeza de colocar o caminh certo da sua pasta (*.traineddata), \"tessdata\"");
                 Console.WriteLine("Os arquivos de linguagem podem ser encontrados aqui: https://github.com/tesseract-ocr/tessdata_fast");
-                Console.ReadKey();
+                Console.Read();
                 throw new Exception("Erro Tesseract: " + e.Message);
             }
             finally
