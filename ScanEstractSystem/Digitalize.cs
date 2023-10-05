@@ -30,107 +30,56 @@ namespace ScanEstractSystem
 
         private void Digitalizar_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog folder = new FolderBrowserDialog();
-            DialogResult result = folder.ShowDialog();
-            if (result == DialogResult.OK)
+            var testImage = @"I:\Lucas\VisStudioReps\ScanEstractSystem\ScanEstractSystem\Tests\test1.png";
+            try 
             {
-                Digitalizar.Text = folder.SelectedPath;
-                string inpFile = Digitalizar.Text + @"\test1.png";
-                string outFile = "Result.pdf";
-
-                ImageLoadOptions lo = new ImageLoadOptions();
-                lo.OCROptions.OCRMode = OCRMode.Enabled;
-                lo.OCROptions.OCRMode = OCRMode.Enabled;
-
-                lo.OCROptions.Method = PerformOCRTesseract;
-                DocumentCore dc = DocumentCore.Load(inpFile, lo);
-
-                foreach (Run r in dc.GetChildElements(true, ElementType.Run))
+                using (var engine = new TesseractEngine(@"..\..\..\tessdata\", "por", EngineMode.Default))
                 {
-                    r.CharacterFormat.FontColor = SautinSoft.Document.Color.Black;
-                    r.CharacterFormat.Scaling = 100;
-                    r.CharacterFormat.Spacing = 0;
-                }
-
-                dc.Save(outFile);
-
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(outFile) { UseShellExecute = true });
-            }
-        }
-
-        public static byte[] PerformOCRTesseract(byte[] image)
-        {
-            string tesseractLanguages = "por";
-            string tesseractData = Path.GetFullPath(@"..\..\..\tessdata\");
-
-            string tempFile = Path.Combine(tesseractData, Path.GetRandomFileName());
-
-            try
-            {
-                using (Tesseract.IResultRenderer renderer = Tesseract.PdfResultRenderer.CreatePdfRenderer(tempFile, tesseractData, true))
-                {
-                    using (renderer.BeginDocument("Serachablepdf"))
+                    using (var img = Pix.LoadFromFile(testImage))
                     {
-                        using (Tesseract.TesseractEngine engine = new Tesseract.TesseractEngine(tesseractData, tesseractLanguages, Tesseract.EngineMode.Default))
+                        using (var page = engine.Process(img))
                         {
-                            engine.DefaultPageSegMode = Tesseract.PageSegMode.Auto;
-                            using (MemoryStream msImg = new MemoryStream(image))
+                            var texto = page.GetText();
+
+                            using (OpenFileDialog open = new OpenFileDialog())
                             {
-                                System.Drawing.Image imgWithText = System.Drawing.Image.FromStream(msImg);
-                                for (int i = 0; i < imgWithText.GetFrameCount(System.Drawing.Imaging.FrameDimension.Page); i++)
+                                open.Filter = "Arquivos png (*.png)|*.png";
+                                if (open.ShowDialog() == DialogResult.OK)
                                 {
-                                    imgWithText.SelectActiveFrame(System.Drawing.Imaging.FrameDimension.Page, i);
-                                    using (MemoryStream ms = new MemoryStream())
+
+                                    FolderBrowserDialog folder = new FolderBrowserDialog();
+                                    DialogResult result = folder.ShowDialog();
+                                    if (result == DialogResult.OK)
                                     {
-                                        imgWithText.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                                        byte[] imgBytes = ms.ToArray();
-                                        using (Tesseract.Pix img = Tesseract.Pix.LoadFromMemory(imgBytes))
+                                        Digitalizar.Text = folder.SelectedPath;
+                                        string outFile = "Result.pdf";
+
+                                        ImageLoadOptions lo = new ImageLoadOptions();
+                                        lo.OCROptions.OCRMode = OCRMode.Enabled;
+                                        lo.OCROptions.OCRMode = OCRMode.Enabled;
+
+                                        DocumentCore dc = DocumentCore.Load(testImage);
+
+                                        foreach (Run r in dc.GetChildElements(true, ElementType.Run))
                                         {
-                                            using (var page = engine.Process(img, "Serachablepdf"))
-                                            {
-                                                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                                                saveFileDialog.Filter = "Arquivos PDF (*.pdf)|*.pdf";
-                                                saveFileDialog.Title = "Salvar PDF";
-
-                                                if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                                                {
-                                                    string txt = page.GetText();
-                                                }
-
-                                                iTextSharp.text.Document doc = new iTextSharp.text.Document();
-                                                string pdfFilePath = saveFileDialog.FileName;
-
-                                                PdfWriter writer = PdfWriter.GetInstance(doc, new FileStream(pdfFilePath, FileMode.Create));
-
-                                                MessageBox.Show("Arquivo PDF salvo com sucesso!");
-
-                                                string text = page.GetText();
-
-                                                renderer.AddPage(page);
-                                            }
+                                            r.CharacterFormat.FontColor = SautinSoft.Document.Color.Black;
+                                            r.CharacterFormat.Scaling = 100;
+                                            r.CharacterFormat.Spacing = 0;
                                         }
+
+                                        dc.Save(outFile);
+
+                                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(outFile) { UseShellExecute = true });
                                     }
+
                                 }
                             }
                         }
                     }
                 }
-
-                return File.ReadAllBytes(tempFile + ".pdf");
             }
-            catch (Exception e)
-            {
-                Console.WriteLine();
-                Console.WriteLine("Porfavor, tenha certeza de colocar o caminh certo da sua pasta (*.traineddata), \"tessdata\"");
-                Console.WriteLine("Os arquivos de linguagem podem ser encontrados aqui: https://github.com/tesseract-ocr/tessdata_fast");
-                Console.Read();
-                throw new Exception("Erro Tesseract: " + e.Message);
-            }
-            finally
-            {
-                if (File.Exists(tempFile + ".pdf"))
-                    File.Delete(tempFile + ".pdf");
-            }
+            catch 
+            { }
         }
 
         private void Scanner_Click(object sender, EventArgs e)
